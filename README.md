@@ -21,6 +21,12 @@
       border: 1px solid #ccc;
       border-radius: 10px;
     }
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      margin: 10px;
+    }
     button {
       padding: 10px 20px;
       background: #007BFF;
@@ -42,45 +48,55 @@
       border: 1px solid #ccc;
       border-radius: 10px;
       background: #fff;
+      text-align: left;
     }
   </style>
 </head>
 <body>
-  <h1>🌍 المترجم</h1>
+  <h1>🌍 المترجم (LibreTranslate)</h1>
   <textarea id="inputText" placeholder="اكتب النص هنا..."></textarea><br>
+  
+  <label for="targetLang">اختر اللغة:</label>
+  <select id="targetLang">
+    <option value="ar">العربية</option>
+    <option value="en">الإنجليزية</option>
+    <option value="fr">الفرنسية</option>
+    <option value="de">الألمانية</option>
+    <option value="es">الإسبانية</option>
+  </select>
+  
   <button onclick="translateText()">ترجم</button>
   <div id="outputText">🔎 الترجمة ستظهر هنا...</div>
 
   <script>
-    const apiKey = "AIzaSyBYB1k-Ba3sQM2rdPF1jb7dsZyQ1IYQns0";
-
     async function translateText() {
       const text = document.getElementById("inputText").value;
+      const lang = document.getElementById("targetLang").value;
       const outputDiv = document.getElementById("outputText");
-      
+
       if (!text) {
         outputDiv.textContent = "⚠️ الرجاء إدخال نص للترجمة.";
         return;
       }
 
       try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: `Translate this to Arabic:\n${text}` }] }]
-            })
-          }
-        );
+        const response = await fetch("https://libretranslate.com/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            q: text,
+            source: "auto",
+            target: lang,
+            format: "text"
+          })
+        });
 
         const data = await response.json();
 
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-          outputDiv.textContent = data.candidates[0].content.parts[0].text;
+        if (data.translatedText) {
+          outputDiv.textContent = data.translatedText;
         } else {
-          outputDiv.textContent = "❌ لم يتم الحصول على ترجمة. تحقق من الإعدادات.";
+          outputDiv.textContent = "❌ لم يتم الحصول على ترجمة.";
           console.log(data);
         }
       } catch (error) {
